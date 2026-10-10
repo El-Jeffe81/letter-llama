@@ -29,7 +29,22 @@
     .sub { padding-left: 8px; }
     .addfolder { display: flex; gap: 6px; padding: 4px 8px 8px; min-width: 0; }
     .addfolder input { flex: 1; min-width: 0; width: 0; min-height: 36px; background: #101b2e; color: var(--paper); border-color: #24344c; }
-    .compose { background: var(--cobalt); color: white; justify-content: center; margin: 8px 0; border-radius: 20px; min-height: 44px; }
+    .compose { background: var(--cobalt); color: white; justify-content: center; margin: 6px 0 14px; border-radius: 8px; min-height: 48px; font-size: 1.05rem; font-weight: 650; }
+    .subs { margin: 0 0 6px 14px; display: flex; flex-direction: column; gap: 2px; }
+    .folder { min-height: 32px; font-size: .92rem; }
+    .addmini { color: var(--brass); justify-content: flex-start; }
+    .subadd { padding: 0; }
+    .subadd input { min-height: 32px; }
+    .compose-pane { min-height: 30vh; display: flex; flex-direction: column; gap: 8px; background: white; border-bottom: 1px solid var(--line); padding: 16px 18px; }
+    .compose-pane textarea { flex: 1; min-height: 120px; }
+    .splitbtn { position: relative; display: inline-flex; }
+    .splitbtn > .danger { border-radius: 10px 0 0 10px; }
+    .splitbtn > .caret { border-radius: 0 10px 10px 0; border-left: 0; padding: 0 8px; min-width: 30px; }
+    .menu { position: absolute; top: calc(100% + 4px); left: 0; z-index: 6; background: white; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 24px rgba(7,17,31,.12); min-width: 160px; }
+    .menu button { display: block; width: 100%; text-align: left; border: 0; background: white; color: #9b2c2c; padding: 8px 12px; border-radius: 8px; }
+    .modal { position: fixed; inset: 0; background: rgba(7,17,31,.45); display: grid; place-items: center; z-index: 30; padding: 16px; }
+    .dialog { background: white; color: var(--inktext); border-radius: 16px; padding: 20px; width: min(420px, 100%); box-shadow: 0 16px 40px rgba(7,17,31,.2); }
+    .dialog h2 { margin: 0 0 8px; font-family: Fraunces, Georgia, serif; font-size: 1.35rem; }
     input, select, textarea { background: white; border: 1px solid var(--line); border-radius: 10px; min-height: 40px; padding: 8px 10px; color: var(--inktext); }
     textarea { min-height: 120px; width: 100%; }
     .main { min-width: 0; display: flex; flex-direction: column; background: #f4f7fb; }
@@ -91,7 +106,7 @@
 
     let state = load();
     function blankFilters() { return { from: "", to: "", subject: "", body: "", dateFrom: "", dateTo: "", attachment: "any", unread: "any" }; }
-    function blank() { return { box: "inbox", folderId: null, letters: seed, folders: [], rules: [], openId: null, writing: false, to: "", subject: "", body: "", replying: false, reply: "", armed: false, query: "", selected: [], filtersOpen: false, filters: blankFilters(), view: "mail", ruleName: "", ruleQuery: "", ruleKind: "archive", armedRule: null, folderName: "" }; }
+    function blank() { return { box: "inbox", folderId: null, letters: seed, folders: [], rules: [], openId: null, writing: false, to: "", subject: "", body: "", replying: false, reply: "", armed: false, query: "", selected: [], filtersOpen: false, filters: blankFilters(), view: "mail", ruleName: "", ruleQuery: "", ruleKind: "archive", armedRule: null, folderName: "", addingFolder: false, menu: "", ask: "" }; }
     function load() {
       try {
         const saved = JSON.parse(localStorage.getItem(KEY) || "null");
@@ -147,18 +162,20 @@
 
     function draw() {
       const inboxN = unreadCount("inbox");
+      const folders = state.folders.map((folder) => `<button class="folder ${state.box === "folder" && state.folderId === folder.id ? "on" : ""}" data-drop="folder" data-folder="${esc(folder.id)}">${esc(folder.name)} <span class="count">${state.letters.filter((l) => l.folderId === folder.id && l.place === "folder").length}</span></button>`).join("");
+      const adder = state.addingFolder
+        ? `<form class="addfolder subadd" id="add-folder"><input id="folder-name" name="name" placeholder="Folder name" value="${esc(state.folderName)}" /><button class="ghost" type="submit">Add</button></form>`
+        : `<button class="folder addmini" data-act="add-folder" type="button">+ Add</button>`;
       document.getElementById("side").innerHTML = `
         <div class="brand"><img alt="" src="${MARK}" /><div><strong>Letter Llama</strong><span>Mailbox</span></div></div>
-        <button class="compose" data-act="write">Compose</button>
+        <button class="compose" data-act="write">New mail</button>
         ${nav("inbox", "Inbox", inboxN)}
+        <div class="subs">${folders}${adder}</div>
         ${nav("sent", "Sent")}
         ${nav("archived", "Set aside")}
         ${nav("trash", "Trash", state.letters.filter((l) => l.place === "trash").length)}
-        <div class="sec">Folders</div>
-        <form class="addfolder" id="add-folder"><input id="folder-name" name="name" placeholder="New folder" value="${esc(state.folderName)}" /><button class="ghost" type="submit">Add</button></form>
-        <div class="sub">${state.folders.map((folder) => `<button class="folder ${state.box === "folder" && state.folderId === folder.id ? "on" : ""}" data-drop="folder" data-folder="${esc(folder.id)}">${esc(folder.name)} <span class="count">${state.letters.filter((l) => l.folderId === folder.id && l.place === "folder").length}</span></button>`).join("") || `<p class="meta" style="padding:0 10px">No folders yet.</p>`}</div>
         <button class="navbtn" data-view="rules" style="margin-top:auto">Rules</button>`;
-      document.getElementById("main").innerHTML = state.view === "rules" ? rulesView() : mailView();
+      document.getElementById("main").innerHTML = (state.view === "rules" ? rulesView() : mailView()) + foreverDialog();
     }
     function nav(box, name, count) {
       return `<button class="navbtn ${state.box === box ? "on" : ""}" data-drop="${box}" data-box="${box}">${name}${count ? `<span class="count">${count}</span>` : ""}</button>`;
@@ -180,17 +197,16 @@
       const bulk = `
         <div class="bulk">
           <input type="checkbox" data-act="check-all" ${allOn ? "checked" : ""} aria-label="Check all" />
-          <button class="danger" data-act="trash-selected" ${state.selected.length ? "" : "disabled"}>Trash</button>
+          ${trashSplit("many", !state.selected.length)}
           <button class="ghost" data-act="aside-selected" ${state.selected.length ? "" : "disabled"}>Set aside</button>
           <select id="bulk-move" ${state.selected.length ? "" : "disabled"}><option value="">Move</option>${state.folders.map((folder) => `<option value="${esc(folder.id)}">${esc(folder.name)}</option>`).join("")}</select>
-          ${state.armed ? `<button class="brass" data-act="confirm-many">Yes, delete forever</button>` : `<button class="brass" data-act="arm-many" ${state.selected.length ? "" : "disabled"}>Delete forever</button>`}
         </div>`;
       const compose = state.writing ? `
-        <form id="compose" class="pad">
-          <label class="meta" for="to">To</label><input id="to" name="to" value="${esc(state.to)}" />
-          <label class="meta" for="subject">Subject</label><input id="subject" name="subject" value="${esc(state.subject)}" />
-          <label class="meta" for="body">Message</label><textarea id="body" name="body">${esc(state.body)}</textarea>
-          <div class="bulk" style="padding-left:0"><button class="btn" type="submit">Send</button><button class="ghost" type="button" data-act="cancel-write">Discard</button></div>
+        <form id="compose" class="compose-pane">
+          <input id="to" name="to" placeholder="To" value="${esc(state.to)}" />
+          <input id="subject" name="subject" placeholder="Subject" value="${esc(state.subject)}" />
+          <textarea id="body" name="body" placeholder="Write your message">${esc(state.body)}</textarea>
+          <div class="bulk" style="padding:0;border:0"><button class="btn" type="submit">Send</button><button class="ghost" type="button" data-act="cancel-write">Discard</button></div>
         </form>` : "";
       const list = `<div class="list">${rows.map((letter) => row(letter)).join("") || `<p class="pad meta">No messages.</p>`}</div>`;
       const open = state.letters.find((letter) => letter.id === state.openId);
@@ -198,6 +214,17 @@
         <div class="toolbar"><input id="q" type="search" placeholder="Search mail" value="${esc(state.query)}" /><button class="ghost" data-act="filters">${state.filtersOpen ? "Hide filters" : "Filters"}</button></div>
         ${filters}${bulk}${compose}
         <div class="split"><div>${list}</div>${open ? `<article class="reader">${reader(open)}</article>` : `<div class="reader empty"></div>`}</div>`;
+    }
+    function trashSplit(which, disabled) {
+      const off = disabled ? "disabled" : "";
+      const menu = state.menu === which ? `<div class="menu"><button type="button" data-act="ask-forever" data-which="${which}">Delete forever</button></div>` : "";
+      const main = which === "one" ? "trash-one" : "trash-selected";
+      return `<span class="splitbtn"><button class="danger" type="button" data-act="${main}" ${off}>Trash</button><button class="danger caret" type="button" data-act="open-menu" data-which="${which}" aria-label="Delete options" ${off}>▾</button>${menu}</span>`;
+    }
+    function foreverDialog() {
+      if (!state.ask) return "";
+      const count = state.ask === "many" ? state.selected.length : 1;
+      return `<div class="modal"><div class="dialog" role="dialog" aria-modal="true"><h2>Delete forever?</h2><p>This removes ${count === 1 ? "this message" : count + " messages"}. It does not go to trash and cannot be undone.</p><div class="bulk" style="padding:12px 0 0;border:0"><button class="danger" type="button" data-act="do-forever">Delete forever</button><button class="ghost" type="button" data-act="close-ask">Cancel</button></div></div></div>`;
     }
     function initials(name) {
       return String(name).trim().split(/\s+/).slice(0, 2).map((part) => part[0] || "").join("").toUpperCase();
@@ -214,8 +241,7 @@
     }
     function reader(letter) {
       const reply = state.replying ? `<form id="reply"><label class="meta" for="reply-body">Reply to ${esc(letter.from)}</label><textarea id="reply-body" name="reply">${esc(state.reply)}</textarea><div class="bulk" style="padding-left:0"><button class="btn" type="submit">Send</button><button class="ghost" type="button" data-act="cancel-reply">Discard</button></div></form>` : `<button class="btn" data-act="reply">Reply</button>`;
-      const kill = state.armed ? `<div class="warn">This deletes the message. It cannot be undone, and it does not move it to trash.<button class="brass" data-act="confirm-delete" style="margin-top:8px">Yes, delete forever</button></div>` : `<button class="brass" data-act="arm">Delete forever</button>`;
-      return `<p class="meta">From ${esc(letter.from)} · To ${esc(letter.to)} · ${esc(shownDate(letter.date))}</p><h1>${esc(letter.subject)}</h1><p>${esc(letter.body)}</p>${letter.files.length ? `<p class="meta">Attachments: ${esc(letter.files.join(", "))}</p>` : ""}<div class="bulk" style="padding-left:0">${reply}<button class="danger" data-act="trash-one">Trash</button><button class="ghost" data-act="aside-one">Set aside</button>${kill}</div>`;
+      return `<p class="meta">From ${esc(letter.from)} · To ${esc(letter.to)} · ${esc(shownDate(letter.date))}</p><h1>${esc(letter.subject)}</h1><p>${esc(letter.body)}</p>${letter.files.length ? `<p class="meta">Attachments: ${esc(letter.files.join(", "))}</p>` : ""}<div class="bulk" style="padding-left:0;border:0">${reply}${trashSplit("one", false)}<button class="ghost" data-act="aside-one">Set aside</button></div>`;
     }
     function rulesView() {
       return `<div class="pad"><h1>Rules</h1><p class="meta">A rule sorts mail already in this mailbox. Delete forever still asks twice and will not trash instead.</p>
@@ -241,14 +267,29 @@
     }
 
     document.body.addEventListener("click", (event) => {
+      if (event.target.classList && event.target.classList.contains("modal")) return set({ ask: "" });
       const t = event.target.closest("button, [data-open]");
       if (!t) return;
       if (t.dataset.box) return set({ box: t.dataset.box, folderId: null, view: "mail", openId: null, selected: [] });
       if (t.dataset.folder && t.classList.contains("folder")) return set({ box: "folder", folderId: t.dataset.folder, view: "mail", openId: null, selected: [] });
       if (t.dataset.view) return set({ view: t.dataset.view });
-      if (t.dataset.act === "write") return set({ writing: true, view: "mail" });
+      if (t.dataset.act === "write") return set({ writing: true, view: "mail", menu: "" });
       if (t.dataset.act === "cancel-write") return set({ writing: false });
+      if (t.dataset.act === "add-folder") return set({ addingFolder: true });
       if (t.dataset.act === "filters") return set({ filtersOpen: !state.filtersOpen });
+      if (t.dataset.act === "open-menu") return set({ menu: state.menu === t.dataset.which ? "" : t.dataset.which });
+      if (t.dataset.act === "ask-forever") return set({ ask: t.dataset.which, menu: "" });
+      if (t.dataset.act === "close-ask") return set({ ask: "" });
+      if (t.dataset.act === "do-forever") {
+        if (state.ask === "many") {
+          const drop = new Set(state.selected);
+          state.letters = state.letters.filter((letter) => !drop.has(letter.id));
+          return set({ selected: [], ask: "", openId: null, menu: "" });
+        }
+        const id = state.openId;
+        state.letters = state.letters.filter((item) => item.id !== id);
+        return set({ openId: null, ask: "", menu: "" });
+      }
       if (t.dataset.act === "check-all") {
         const rows = filtered();
         const allOn = rows.every((letter) => state.selected.includes(letter.id));
@@ -261,22 +302,11 @@
       if (t.dataset.trash) return placeIds([t.dataset.trash], "trash");
       if (t.dataset.act === "trash-selected") return placeIds(state.selected, "trash");
       if (t.dataset.act === "aside-selected") return placeIds(state.selected, "archived");
-      if (t.dataset.act === "arm-many") return set({ armed: true });
-      if (t.dataset.act === "confirm-many") {
-        const drop = new Set(state.selected);
-        state.letters = state.letters.filter((letter) => !drop.has(letter.id));
-        return set({ selected: [], armed: false, openId: null });
-      }
       const letter = state.letters.find((item) => item.id === state.openId);
       if (t.dataset.act === "reply") return set({ replying: true });
       if (t.dataset.act === "cancel-reply") return set({ replying: false });
       if (t.dataset.act === "trash-one" && letter) return placeIds([letter.id], "trash");
       if (t.dataset.act === "aside-one" && letter) return placeIds([letter.id], "archived");
-      if (t.dataset.act === "arm") return set({ armed: true });
-      if (t.dataset.act === "confirm-delete" && letter) {
-        state.letters = state.letters.filter((item) => item.id !== letter.id);
-        return set({ openId: null, armed: false });
-      }
       if (t.dataset.removeRule) return set({ rules: state.rules.filter((rule) => rule.id !== t.dataset.removeRule) });
       if (t.dataset.armRule) return set({ armedRule: t.dataset.armRule });
       if (t.dataset.run) return runRule(t.dataset.run);
@@ -331,7 +361,7 @@
         if (!name) return;
         const id = uid();
         state.folders = state.folders.concat([{ id, name }]);
-        set({ folderName: "", box: "folder", folderId: id, view: "mail" });
+        set({ folderName: "", addingFolder: false, box: "folder", folderId: id, view: "mail" });
       } else if (form.id === "add-rule") {
         const name = String(data.get("name") || "").trim();
         if (!name) return;
