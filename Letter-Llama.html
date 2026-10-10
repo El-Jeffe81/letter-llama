@@ -106,11 +106,16 @@
 
     let state = load();
     function blankFilters() { return { from: "", to: "", subject: "", body: "", dateFrom: "", dateTo: "", attachment: "any", unread: "any" }; }
-    function blank() { return { box: "inbox", folderId: null, letters: seed, folders: [], rules: [], openId: null, writing: false, to: "", subject: "", body: "", replying: false, reply: "", armed: false, query: "", selected: [], filtersOpen: false, filters: blankFilters(), view: "mail", ruleName: "", ruleQuery: "", ruleKind: "archive", armedRule: null, folderName: "", addingFolder: false, menu: "", ask: "" }; }
+    function blank() { return { box: "inbox", folderId: null, letters: seed, folders: [], rules: [], openId: null, writing: false, to: "", subject: "", body: "", replying: false, reply: "", armed: false, query: "", selected: [], filtersOpen: false, filters: blankFilters(), view: "mail", ruleName: "", ruleQuery: "", ruleKind: "trash", armedRule: null, folderName: "", addingFolder: false, menu: "", ask: "" }; }
     function load() {
       try {
         const saved = JSON.parse(localStorage.getItem(KEY) || "null");
-        if (saved && Array.isArray(saved.letters)) return Object.assign(blank(), saved, { filters: Object.assign(blankFilters(), saved.filters || {}) });
+        if (saved && Array.isArray(saved.letters)) {
+          saved.letters = saved.letters.map((letter) => letter.place === "archived" ? Object.assign({}, letter, { place: "inbox" }) : letter);
+          if (saved.box === "archived") saved.box = "inbox";
+          if (Array.isArray(saved.rules)) saved.rules = saved.rules.map((rule) => rule.kind === "archive" ? Object.assign({}, rule, { kind: "keep" }) : rule);
+          return Object.assign(blank(), saved, { filters: Object.assign(blankFilters(), saved.filters || {}) });
+        }
       } catch (e) {}
       return blank();
     }
@@ -156,7 +161,7 @@
     }
     function title() {
       if (state.box === "folder") { const f = state.folders.find((item) => item.id === state.folderId); return f ? f.name : "Folder"; }
-      return { inbox: "Inbox", sent: "Sent", archived: "Set aside", trash: "Trash" }[state.box] || "Inbox";
+      return { inbox: "Inbox", sent: "Sent", trash: "Trash" }[state.box] || "Inbox";
     }
     function unreadCount(box) { return state.letters.filter((l) => l.place === box && l.unread).length; }
 
@@ -172,7 +177,6 @@
         ${nav("inbox", "Inbox", inboxN)}
         <div class="subs">${folders}${adder}</div>
         ${nav("sent", "Sent")}
-        ${nav("archived", "Set aside")}
         ${nav("trash", "Trash", state.letters.filter((l) => l.place === "trash").length)}
         <button class="navbtn" data-view="rules" style="margin-top:auto">Rules</button>`;
       document.getElementById("main").innerHTML = (state.view === "rules" ? rulesView() : mailView()) + foreverDialog();
@@ -198,7 +202,6 @@
         <div class="bulk">
           <input type="checkbox" data-act="check-all" ${allOn ? "checked" : ""} aria-label="Check all" />
           ${trashSplit("many", !state.selected.length)}
-          <button class="ghost" data-act="aside-selected" ${state.selected.length ? "" : "disabled"}>Set aside</button>
           <select id="bulk-move" ${state.selected.length ? "" : "disabled"}><option value="">Move</option>${state.folders.map((folder) => `<option value="${esc(folder.id)}">${esc(folder.name)}</option>`).join("")}</select>
         </div>`;
       const compose = state.writing ? `
@@ -241,12 +244,12 @@
     }
     function reader(letter) {
       const reply = state.replying ? `<form id="reply"><label class="meta" for="reply-body">Reply to ${esc(letter.from)}</label><textarea id="reply-body" name="reply">${esc(state.reply)}</textarea><div class="bulk" style="padding-left:0"><button class="btn" type="submit">Send</button><button class="ghost" type="button" data-act="cancel-reply">Discard</button></div></form>` : `<button class="btn" data-act="reply">Reply</button>`;
-      return `<p class="meta">From ${esc(letter.from)} · To ${esc(letter.to)} · ${esc(shownDate(letter.date))}</p><h1>${esc(letter.subject)}</h1><p>${esc(letter.body)}</p>${letter.files.length ? `<p class="meta">Attachments: ${esc(letter.files.join(", "))}</p>` : ""}<div class="bulk" style="padding-left:0;border:0">${reply}${trashSplit("one", false)}<button class="ghost" data-act="aside-one">Set aside</button></div>`;
+      return `<p class="meta">From ${esc(letter.from)} · To ${esc(letter.to)} · ${esc(shownDate(letter.date))}</p><h1>${esc(letter.subject)}</h1><p>${esc(letter.body)}</p>${letter.files.length ? `<p class="meta">Attachments: ${esc(letter.files.join(", "))}</p>` : ""}<div class="bulk" style="padding-left:0;border:0">${reply}${trashSplit("one", false)}</div>`;
     }
     function rulesView() {
       return `<div class="pad"><h1>Rules</h1><p class="meta">A rule sorts mail already in this mailbox. Delete forever still asks twice and will not trash instead.</p>
-        <form id="add-rule"><label class="meta">Name</label><input id="rule-name" name="name" value="${esc(state.ruleName)}" /><label class="meta">Words</label><input id="rule-query" name="query" value="${esc(state.ruleQuery)}" /><label class="meta">Action</label><select id="rule-kind" name="kind"><option value="archive">Set aside</option><option value="trash">Trash</option><option value="keep">Inbox</option><option value="permanent_delete" ${state.ruleKind === "permanent_delete" ? "selected" : ""}>Delete forever</option></select><button class="btn" type="submit" style="margin-top:8px">Save rule</button></form>
-        ${state.rules.map((rule) => { const matched = hits(rule); const action = rule.kind === "permanent_delete" ? (state.armedRule === rule.id ? `<button class="brass" data-run="${esc(rule.id)}">Yes, delete forever</button>` : `<button class="brass" data-arm-rule="${esc(rule.id)}" ${matched.length ? "" : "disabled"}>Delete matches forever</button>`) : `<button class="danger" data-run="${esc(rule.id)}" ${matched.length ? "" : "disabled"}>${rule.kind === "trash" ? "Trash matches" : rule.kind === "archive" ? "Set matches aside" : "Move matches to inbox"}</button>`; return `<div class="warn"><strong>${esc(rule.name)}</strong><div class="meta">${matched.length ? matched.length + " match" : "No matches"}</div>${action} <button class="ghost" data-remove-rule="${esc(rule.id)}">Remove</button></div>`; }).join("")}
+        <form id="add-rule"><label class="meta">Name</label><input id="rule-name" name="name" value="${esc(state.ruleName)}" /><label class="meta">Words</label><input id="rule-query" name="query" value="${esc(state.ruleQuery)}" /><label class="meta">Action</label><select id="rule-kind" name="kind"><option value="trash">Trash</option><option value="keep">Inbox</option><option value="permanent_delete" ${state.ruleKind === "permanent_delete" ? "selected" : ""}>Delete forever</option></select><button class="btn" type="submit" style="margin-top:8px">Save rule</button></form>
+        ${state.rules.map((rule) => { const matched = hits(rule); const action = rule.kind === "permanent_delete" ? (state.armedRule === rule.id ? `<button class="brass" data-run="${esc(rule.id)}">Yes, delete forever</button>` : `<button class="brass" data-arm-rule="${esc(rule.id)}" ${matched.length ? "" : "disabled"}>Delete matches forever</button>`) : `<button class="danger" data-run="${esc(rule.id)}" ${matched.length ? "" : "disabled"}>${rule.kind === "trash" ? "Trash matches" : "Move matches to inbox"}</button>`; return `<div class="warn"><strong>${esc(rule.name)}</strong><div class="meta">${matched.length ? matched.length + " match" : "No matches"}</div>${action} <button class="ghost" data-remove-rule="${esc(rule.id)}">Remove</button></div>`; }).join("")}
       </div>`;
     }
     function hits(rule) {
@@ -301,12 +304,10 @@
       }
       if (t.dataset.trash) return placeIds([t.dataset.trash], "trash");
       if (t.dataset.act === "trash-selected") return placeIds(state.selected, "trash");
-      if (t.dataset.act === "aside-selected") return placeIds(state.selected, "archived");
       const letter = state.letters.find((item) => item.id === state.openId);
       if (t.dataset.act === "reply") return set({ replying: true });
       if (t.dataset.act === "cancel-reply") return set({ replying: false });
       if (t.dataset.act === "trash-one" && letter) return placeIds([letter.id], "trash");
-      if (t.dataset.act === "aside-one" && letter) return placeIds([letter.id], "archived");
       if (t.dataset.removeRule) return set({ rules: state.rules.filter((rule) => rule.id !== t.dataset.removeRule) });
       if (t.dataset.armRule) return set({ armedRule: t.dataset.armRule });
       if (t.dataset.run) return runRule(t.dataset.run);
@@ -405,7 +406,7 @@
         state.letters = state.letters.filter((letter) => !drop.has(letter.id));
         return set({ armedRule: null });
       }
-      placeIds(ids, rule.kind === "trash" ? "trash" : rule.kind === "archive" ? "archived" : "inbox");
+      placeIds(ids, rule.kind === "trash" ? "trash" : "inbox");
     }
     draw();
   </script>
