@@ -1,7 +1,7 @@
 # Ownership
 
-2026-10-10: Jeff said `jjgumballs@gmail.com` is an old test address. Do not put the Google Cloud project, the OAuth client, or the Letter Llama brand under that name.
+2026-10-10: The Google Cloud project and the OAuth clients were created while signed in as `jjgumballs@gmail.com`. That happened because the setup steps named that address. Jeff later said he did not want the Letter Llama brand owned under that name. The Cloud project was not moved.
 
-The Cloud project is created while signed in as the Google account that should own Letter Llama.
+For the Gmail test, stay signed in to Google Cloud as `jjgumballs@gmail.com`. Do not make a second project.
 
-`jjgumballs@gmail.com` can be added only as an OAuth test user, and only if fixture mail still goes to that inbox. It is not the owner.
+That address is also the test mailbox. A different Google account can own the brand later. That move is not required to connect the test inbox.

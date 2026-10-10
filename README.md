@@ -52,7 +52,7 @@ Files named `logo-pack-llama` or `logo-carrier-llama` are rejected drafts. Do no
 
 ## Gmail test
 
-The sidebar has **Connect Gmail**. Practice mail stays until a sign-in works. `jjgumballs@gmail.com` can be the test user. It is not the owner.
+The Cloud project is already under `jjgumballs@gmail.com`. Stay signed in as that account. It is also the test mailbox. A different owner can be chosen later. Do not make a second project for this test.
 
 The client id already in the repo is a **Desktop** client. A browser sign-in needs a **Web application** client. Until that exists, Connect Gmail will be refused by Google.
 
@@ -67,6 +67,8 @@ Do not send a client secret. First sign-in asks only for `gmail.modify` (read, s
 
 Folders are still local. Dragging Gmail onto a folder does not file it in Gmail yet.
 
+## What is not built
+
 - There is no Windows, Mac, or phone install.
 - `phase1/` is a Rust command-line proof. It is not wired to the HTML app. Its tests use a fake Gmail. No one has signed in. See [docs/phase-1.md](docs/phase-1.md) and [docs/oauth-client.md](docs/oauth-client.md).
 - `src/` is an older React desk. Editing it does not change the mailbox. The mailbox is the HTML file.
@@ -74,7 +76,7 @@ Folders are still local. Dragging Gmail onto a folder does not file it in Gmail 
 ## Decisions already made
 
 - Brand name is Letter Llama. Owner is Jeff (`El-Jeffe81`).
-- `jjgumballs@gmail.com` is an old test address. Do not put the Google Cloud project, the OAuth client, or the brand under that name. It may be an OAuth test user only. See [docs/OWNERSHIP.md](docs/OWNERSHIP.md).
+- `jjgumballs@gmail.com` owns the current Google Cloud project, because that is the account used to create it. It is also the test mailbox. A different brand owner can be chosen later. See [docs/OWNERSHIP.md](docs/OWNERSHIP.md).
 - Fix the look before connecting Gmail.
 - Providers, when connected later, stay the source of truth. Trash and permanent delete stay different operations. Do not turn one into the other.
 - Do not add Set aside back unless Jeff asks.

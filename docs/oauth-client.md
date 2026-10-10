@@ -10,4 +10,4 @@ This is a Desktop client. Google will not use it for a browser sign-in. No clien
 
 ## What the browser needs
 
-A second client, type **Web application**, with JavaScript origins for the page Jeff actually opens. The test user is `jjgumballs@gmail.com`. That address is not the owner. See [OWNERSHIP.md](OWNERSHIP.md).
+A second client, type **Web application**, in this same project. JavaScript origins are listed in the README. The test user and the current Cloud owner are the same address: `jjgumballs@gmail.com`. Stay in that project. See [OWNERSHIP.md](OWNERSHIP.md).
