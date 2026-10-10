@@ -1,15 +1,13 @@
-# Desktop OAuth client
+# OAuth clients
 
-The repo is public. This file is already in git history. It is a testing client id, not a password. No one has signed in. No Gmail call has been made.
+Jeff asked on 2026-10-10 to connect a test Gmail account. The mailbox has a **Connect Gmail** button. See the README section "Gmail test".
 
-Client ID:
+## Desktop client already in the repo
 
 `193372328813-i4rag2qrs1rpl2eu2qknclk0l6i85nls.apps.googleusercontent.com`
 
-No client secret was provided. Do not ask for a password.
+This is a Desktop client. Google will not use it for a browser sign-in. No client secret was provided. Do not ask for a password. Nobody has signed in.
 
-Google accepted this id: the authorize URL returns a Google sign-in page, not invalid_client.
+## What the browser needs
 
-`jjgumballs@gmail.com` is not the project owner. The account that signs in must be on the consent-screen test-user list. See [OWNERSHIP.md](OWNERSHIP.md).
-
-Do not connect this to the HTML app until Jeff asks. The current work is the interface. See the [README](../README.md).
+A second client, type **Web application**, with JavaScript origins for the page Jeff actually opens. The test user is `jjgumballs@gmail.com`. That address is not the owner. See [OWNERSHIP.md](OWNERSHIP.md).

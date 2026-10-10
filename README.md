@@ -50,9 +50,23 @@ Use [4-legged-llama.jpg](4-legged-llama.jpg). Four legs, head to the left, one c
 
 Files named `logo-pack-llama` or `logo-carrier-llama` are rejected drafts. Do not use them.
 
-## What is not built
+## Gmail test
 
-- Gmail is not connected. Compose does not send real mail.
+The sidebar has **Connect Gmail**. Practice mail stays until a sign-in works. `jjgumballs@gmail.com` can be the test user. It is not the owner.
+
+The client id already in the repo is a **Desktop** client. A browser sign-in needs a **Web application** client. Until that exists, Connect Gmail will be refused by Google.
+
+In Google Cloud, on the account that owns the project:
+
+1. APIs & Services → Credentials → Create credentials → OAuth client ID → Web application.
+2. Authorized JavaScript origins: `https://htmlpreview.github.io` and `http://127.0.0.1` and `http://localhost`.
+3. OAuth consent screen → Audience → Test users → add `jjgumballs@gmail.com`.
+4. Put the new client id in `Letter-Llama.html` as `GMAIL_CLIENT`, then copy that file over `index.html`.
+
+Do not send a client secret. First sign-in asks only for `gmail.modify` (read, send, trash). Delete forever asks a second time for `https://mail.google.com/`. The token stays in the browser. It is not committed.
+
+Folders are still local. Dragging Gmail onto a folder does not file it in Gmail yet.
+
 - There is no Windows, Mac, or phone install.
 - `phase1/` is a Rust command-line proof. It is not wired to the HTML app. Its tests use a fake Gmail. No one has signed in. See [docs/phase-1.md](docs/phase-1.md) and [docs/oauth-client.md](docs/oauth-client.md).
 - `src/` is an older React desk. Editing it does not change the mailbox. The mailbox is the HTML file.

@@ -30,6 +30,7 @@
     .addfolder { display: flex; gap: 6px; padding: 4px 8px 8px; min-width: 0; }
     .addfolder input { flex: 1; min-width: 0; width: 0; min-height: 36px; background: #101b2e; color: var(--paper); border-color: #24344c; }
     .compose { background: var(--cobalt); color: white; justify-content: center; margin: 6px 0 14px; border-radius: 8px; min-height: 48px; font-size: 1.05rem; font-weight: 650; }
+    .gmail-note { margin: 0 10px 8px; color: var(--brass); font-size: .75rem; line-height: 1.35; }
     .subs { margin: 0 0 6px 14px; display: flex; flex-direction: column; gap: 2px; }
     .folder { min-height: 32px; font-size: .92rem; }
     .addmini { color: var(--brass); justify-content: flex-start; }
@@ -86,6 +87,7 @@
       .when { grid-column: 3; text-align: left; }
     }
   </style>
+  <script src="https://accounts.google.com/gsi/client" async></script>
 </head>
 <body>
   <div class="shell">
@@ -106,7 +108,7 @@
 
     let state = load();
     function blankFilters() { return { from: "", to: "", subject: "", body: "", dateFrom: "", dateTo: "", attachment: "any", unread: "any" }; }
-    function blank() { return { box: "inbox", folderId: null, letters: seed, folders: [], rules: [], openId: null, writing: false, to: "", subject: "", body: "", replying: false, reply: "", armed: false, query: "", selected: [], filtersOpen: false, filters: blankFilters(), view: "mail", ruleName: "", ruleQuery: "", ruleKind: "trash", armedRule: null, folderName: "", addingFolder: false, menu: "", ask: "" }; }
+    function blank() { return { box: "inbox", folderId: null, letters: seed, folders: [], rules: [], openId: null, writing: false, to: "", subject: "", body: "", replying: false, reply: "", armed: false, query: "", selected: [], filtersOpen: false, filters: blankFilters(), view: "mail", ruleName: "", ruleQuery: "", ruleKind: "trash", armedRule: null, folderName: "", addingFolder: false, menu: "", ask: "", gmail: null, gmailLetters: [], gmailError: "", gmailClient: "" }; }
     function load() {
       try {
         const saved = JSON.parse(localStorage.getItem(KEY) || "null");
@@ -119,7 +121,10 @@
       } catch (e) {}
       return blank();
     }
-    function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
+    function save() {
+      const copy = Object.assign({}, state, { gmailLetters: [] });
+      localStorage.setItem(KEY, JSON.stringify(copy));
+    }
     function uid() { return Math.random().toString(36).slice(2) + Date.now().toString(36); }
     function esc(s) { return String(s ?? "").replace(/[&<>"']/g, (c) => "&#" + c.charCodeAt(0) + ";"); }
     function shownDate(iso) { const p = String(iso).split("-"); const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]; return months[(+p[1] || 1) - 1] + " " + (+p[2] || ""); }
@@ -134,7 +139,9 @@
         if (el) { el.focus(); if (pos != null && el.setSelectionRange) { try { el.setSelectionRange(pos, pos); } catch (e) {} } }
       }
     }
+    function gmailOn() { return !!(state.gmail && state.gmail.token && state.gmail.expires > Date.now()); }
     function boxLetters() {
+      if (gmailOn() && state.box !== "folder") return (state.gmailLetters || []).filter((letter) => letter.place === state.box);
       return state.letters.filter((letter) => {
         if (state.box === "folder") return letter.place === "folder" && letter.folderId === state.folderId;
         return letter.place === state.box;
@@ -163,7 +170,10 @@
       if (state.box === "folder") { const f = state.folders.find((item) => item.id === state.folderId); return f ? f.name : "Folder"; }
       return { inbox: "Inbox", sent: "Sent", trash: "Trash" }[state.box] || "Inbox";
     }
-    function unreadCount(box) { return state.letters.filter((l) => l.place === box && l.unread).length; }
+    function unreadCount(box) {
+      if (gmailOn() && box !== "folder") return (state.gmailLetters || []).filter((letter) => letter.place === box && letter.unread).length;
+      return state.letters.filter((l) => l.place === box && l.unread).length;
+    }
 
     function draw() {
       const inboxN = unreadCount("inbox");
@@ -174,10 +184,11 @@
       document.getElementById("side").innerHTML = `
         <div class="brand"><img alt="" src="${MARK}" /><div><strong>Letter Llama</strong><span>Mailbox</span></div></div>
         <button class="compose" data-act="write">New mail</button>
+        ${gmailBlock()}
         ${nav("inbox", "Inbox", inboxN)}
         <div class="subs">${folders}${adder}</div>
         ${nav("sent", "Sent")}
-        ${nav("trash", "Trash", state.letters.filter((l) => l.place === "trash").length)}
+        ${nav("trash", "Trash", gmailOn() ? (state.gmailLetters || []).filter((l) => l.place === "trash").length : state.letters.filter((l) => l.place === "trash").length)}
         <button class="navbtn" data-view="rules" style="margin-top:auto">Rules</button>`;
       document.getElementById("main").innerHTML = (state.view === "rules" ? rulesView() : mailView()) + foreverDialog();
     }
@@ -212,11 +223,127 @@
           <div class="bulk" style="padding:0;border:0"><button class="btn" type="submit">Send</button><button class="ghost" type="button" data-act="cancel-write">Discard</button></div>
         </form>` : "";
       const list = `<div class="list">${rows.map((letter) => row(letter)).join("") || `<p class="pad meta">No messages.</p>`}</div>`;
-      const open = state.letters.find((letter) => letter.id === state.openId);
+      const open = (gmailOn() ? (state.gmailLetters || []) : state.letters).find((letter) => letter.id === state.openId);
       return `
         <div class="toolbar"><input id="q" type="search" placeholder="Search mail" value="${esc(state.query)}" /><button class="ghost" data-act="filters">${state.filtersOpen ? "Hide filters" : "Filters"}</button></div>
         ${filters}${bulk}${compose}
         <div class="split"><div>${list}</div>${open ? `<article class="reader">${reader(open)}</article>` : `<div class="reader empty"></div>`}</div>`;
+    }
+    const GMAIL_CLIENT = "193372328813-i4rag2qrs1rpl2eu2qknclk0l6i85nls.apps.googleusercontent.com";
+    const GMAIL_MODIFY = "https://www.googleapis.com/auth/gmail.modify";
+    const GMAIL_FULL = "https://mail.google.com/";
+    function gmailBlock() {
+      if (gmailOn()) return `<p class="gmail-note">${esc(state.gmail.email || "Gmail")}</p><button class="navbtn" data-act="gmail-off">Use practice mail</button>`;
+      return `<button class="navbtn" data-act="gmail-connect">Connect Gmail</button><p class="gmail-note">Test user only. Not the owner.</p>${state.gmailError ? `<p class="gmail-note">${esc(state.gmailError)}</p>` : ""}`;
+    }
+    function gmailAuth(permanent) {
+      if (!window.google || !google.accounts || !google.accounts.oauth2) return set({ gmailError: "Google sign-in is still loading. Click Connect again." });
+      const client = google.accounts.oauth2.initTokenClient({
+        client_id: state.gmailClient || GMAIL_CLIENT,
+        scope: permanent ? GMAIL_FULL : GMAIL_MODIFY,
+        include_granted_scopes: true,
+        callback: (resp) => {
+          if (resp.error) return set({ gmailError: resp.error });
+          state.gmail = { token: resp.access_token, expires: Date.now() + ((resp.expires_in || 3600) * 1000), scope: resp.scope || "", email: state.gmail && state.gmail.email };
+          save();
+          if (state.pendingDelete && state.pendingDelete.length && String(resp.scope || "").indexOf("mail.google.com") >= 0) return gmailDestroy(state.pendingDelete);
+          refreshGmail();
+        }
+      });
+      client.requestAccessToken({ prompt: "consent" });
+    }
+    function gmailHeader(msg, name) {
+      const headers = (msg.payload && msg.payload.headers) || [];
+      const found = headers.find((item) => item.name.toLowerCase() === name.toLowerCase());
+      return found ? found.value : "";
+    }
+    function letterFromGmail(msg, place) {
+      const date = new Date(Number(msg.internalDate) || Date.now());
+      const files = [];
+      const walk = (part) => { if (!part) return; if (part.filename) files.push(part.filename); (part.parts || []).forEach(walk); };
+      walk(msg.payload);
+      return { id: msg.id, from: gmailHeader(msg, "From") || "(unknown)", to: gmailHeader(msg, "To") || "", subject: gmailHeader(msg, "Subject") || "(no subject)", body: msg.snippet || "", date: date.toISOString().slice(0, 10), unread: (msg.labelIds || []).indexOf("UNREAD") >= 0, files, place, folderId: null, gmail: true };
+    }
+    async function gmailFetch(url, options) {
+      const opts = options || {};
+      const headers = Object.assign({ Authorization: "Bearer " + state.gmail.token }, opts.headers || {});
+      const res = await fetch(url, Object.assign({}, opts, { headers }));
+      if (!res.ok) throw new Error("Gmail " + res.status);
+      return res.status === 204 ? null : res.json();
+    }
+    async function refreshGmail() {
+      if (!gmailOn()) return;
+      try {
+        const profile = await gmailFetch("https://gmail.googleapis.com/gmail/v1/users/me/profile");
+        const boxes = [["inbox", "in:inbox", 15], ["sent", "in:sent", 8], ["trash", "in:trash", 8]];
+        const letters = [];
+        for (const [place, query, max] of boxes) {
+          const list = await gmailFetch("https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=" + max + "&q=" + encodeURIComponent(query));
+          for (const item of list.messages || []) {
+            const msg = await gmailFetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/" + item.id + "?format=metadata&metadataHeaders=From&metadataHeaders=To&metadataHeaders=Subject");
+            letters.push(letterFromGmail(msg, place));
+          }
+        }
+        set({ gmail: Object.assign({}, state.gmail, { email: profile.emailAddress }), gmailLetters: letters, gmailError: "" });
+      } catch (err) {
+        set({ gmailError: err.message || "Gmail did not answer." });
+      }
+    }
+    function decodeB64(data) {
+      const pad = data.replace(/-/g, "+").replace(/_/g, "/");
+      const bytes = Uint8Array.from(atob(pad), (c) => c.charCodeAt(0));
+      return new TextDecoder().decode(bytes);
+    }
+    function decodeBody(payload) {
+      if (!payload) return "";
+      if (payload.mimeType === "text/plain" && payload.body && payload.body.data) return decodeB64(payload.body.data);
+      for (const part of payload.parts || []) {
+        const found = decodeBody(part);
+        if (found) return found;
+      }
+      if (payload.body && payload.body.data) return decodeB64(payload.body.data);
+      return "";
+    }
+    async function openGmail(id) {
+      try {
+        await gmailFetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/" + id + "/modify", { method: "POST", headers: { Authorization: "Bearer " + state.gmail.token, "Content-Type": "application/json" }, body: JSON.stringify({ removeLabelIds: ["UNREAD"] }) });
+        const msg = await gmailFetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/" + id + "?format=full");
+        const body = decodeBody(msg.payload) || msg.snippet || "";
+        const letters = (state.gmailLetters || []).map((letter) => letter.id === id ? Object.assign({}, letter, { body, unread: false }) : letter);
+        set({ gmailLetters: letters, openId: id, view: "mail", replying: false });
+      } catch (err) {
+        set({ gmailError: err.message || "Could not open that message." });
+      }
+    }
+    async function gmailTrash(ids) {
+      try {
+        for (const id of ids) await gmailFetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/" + id + "/trash", { method: "POST" });
+        await refreshGmail();
+        set({ selected: [], openId: null });
+      } catch (err) {
+        set({ gmailError: err.message || "Trash failed." });
+      }
+    }
+    async function gmailDestroy(ids) {
+      if (!state.gmail || String(state.gmail.scope).indexOf("mail.google.com") < 0) {
+        state.pendingDelete = ids;
+        return gmailAuth(true);
+      }
+      try {
+        for (const id of ids) await gmailFetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/" + id, { method: "DELETE" });
+        state.pendingDelete = [];
+        await refreshGmail();
+        set({ selected: [], openId: null, ask: "" });
+      } catch (err) {
+        set({ gmailError: err.message || "Delete forever failed.", ask: "" });
+      }
+    }
+    function rawMessage(to, subject, body) {
+      const text = "To: " + to + "\r\nSubject: " + subject + "\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n" + body;
+      const bytes = new TextEncoder().encode(text);
+      let bin = "";
+      bytes.forEach((b) => { bin += String.fromCharCode(b); });
+      return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
     }
     function trashSplit(which, disabled) {
       const off = disabled ? "disabled" : "";
@@ -258,6 +385,12 @@
       return state.letters.filter((letter) => words.every((word) => (letter.from + " " + letter.to + " " + letter.subject + " " + letter.body).toLowerCase().includes(word)));
     }
     function send(to, subject, body) {
+      if (gmailOn()) {
+        gmailFetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", { method: "POST", headers: { Authorization: "Bearer " + state.gmail.token, "Content-Type": "application/json" }, body: JSON.stringify({ raw: rawMessage(to, subject, body) }) })
+          .then(() => { set({ writing: false, replying: false, to: "", subject: "", body: "", reply: "", box: "sent" }); return refreshGmail(); })
+          .catch((err) => set({ gmailError: err.message || "Send failed." }));
+        return;
+      }
       const date = "2026-10-10";
       const sent = { id: uid(), from: "You", to, subject, body, date, unread: false, files: [], place: "sent", folderId: null };
       const delivered = Object.assign({}, sent, { id: uid(), unread: true, place: "inbox" });
@@ -276,6 +409,8 @@
       if (t.dataset.box) return set({ box: t.dataset.box, folderId: null, view: "mail", openId: null, selected: [] });
       if (t.dataset.folder && t.classList.contains("folder")) return set({ box: "folder", folderId: t.dataset.folder, view: "mail", openId: null, selected: [] });
       if (t.dataset.view) return set({ view: t.dataset.view });
+      if (t.dataset.act === "gmail-connect") return gmailAuth(false);
+      if (t.dataset.act === "gmail-off") return set({ gmail: null, gmailLetters: [], gmailError: "", pendingDelete: [] });
       if (t.dataset.act === "write") return set({ writing: true, view: "mail", menu: "" });
       if (t.dataset.act === "cancel-write") return set({ writing: false });
       if (t.dataset.act === "add-folder") return set({ addingFolder: true });
@@ -284,6 +419,8 @@
       if (t.dataset.act === "ask-forever") return set({ ask: t.dataset.which, menu: "" });
       if (t.dataset.act === "close-ask") return set({ ask: "" });
       if (t.dataset.act === "do-forever") {
+        const ids = state.ask === "many" ? state.selected.slice() : (state.openId ? [state.openId] : []);
+        if (gmailOn()) return gmailDestroy(ids);
         if (state.ask === "many") {
           const drop = new Set(state.selected);
           state.letters = state.letters.filter((letter) => !drop.has(letter.id));
@@ -299,15 +436,16 @@
         return set({ selected: allOn ? [] : rows.map((letter) => letter.id), armed: false });
       }
       if (t.dataset.open && !event.target.closest("input,button,select")) {
+        if (gmailOn()) return openGmail(t.dataset.open);
         state.letters = state.letters.map((letter) => letter.id === t.dataset.open ? Object.assign({}, letter, { unread: false }) : letter);
         return set({ openId: t.dataset.open, armed: false, replying: false, view: "mail" });
       }
       if (t.dataset.trash) return placeIds([t.dataset.trash], "trash");
-      if (t.dataset.act === "trash-selected") return placeIds(state.selected, "trash");
-      const letter = state.letters.find((item) => item.id === state.openId);
+      if (t.dataset.act === "trash-selected") return gmailOn() ? gmailTrash(state.selected.slice()) : placeIds(state.selected, "trash");
+      const letter = (gmailOn() ? state.gmailLetters : state.letters).find((item) => item.id === state.openId);
       if (t.dataset.act === "reply") return set({ replying: true });
       if (t.dataset.act === "cancel-reply") return set({ replying: false });
-      if (t.dataset.act === "trash-one" && letter) return placeIds([letter.id], "trash");
+      if (t.dataset.act === "trash-one" && letter) return gmailOn() ? gmailTrash([letter.id]) : placeIds([letter.id], "trash");
       if (t.dataset.removeRule) return set({ rules: state.rules.filter((rule) => rule.id !== t.dataset.removeRule) });
       if (t.dataset.armRule) return set({ armedRule: t.dataset.armRule });
       if (t.dataset.run) return runRule(t.dataset.run);
@@ -393,6 +531,8 @@
       zone.classList.remove("over");
       const id = event.dataTransfer.getData("text/plain");
       if (!id) return;
+      if (gmailOn() && zone.dataset.drop === "trash") return gmailTrash([id]);
+      if (gmailOn()) return set({ gmailError: "Folders stay on this computer for now." });
       if (zone.dataset.folder) placeIds([id], "folder", zone.dataset.folder);
       else if (zone.dataset.drop && zone.dataset.drop !== "folder") placeIds([id], zone.dataset.drop);
     });
@@ -409,6 +549,7 @@
       placeIds(ids, rule.kind === "trash" ? "trash" : "inbox");
     }
     draw();
+    if (gmailOn()) refreshGmail();
   </script>
 </body>
 </html>
