@@ -2,30 +2,64 @@
 
 Reviewed 2026-10-10 against current official docs. No mailbox was connected. Nothing here was executed against Gmail.
 
-Labels: **Verified** means an official page said it. **Assumption** is a recommended default, not a measured fact. **Open** still needs a decision or a live test.
+Labels used in the longer notes: **Verified** means an official page said it. **Assumption** is a recommended default. **Open** still needs a decision or a live test.
 
-This phase does not build the app. The exit criterion in the brief (a live Gmail delete) is **not met**. The blocker is documented below: there is no Google Cloud OAuth client and no sacrificial test mailbox in this environment.
+The live-delete exit criterion is **not met**. There is no Google Cloud OAuth client and no sacrificial test mailbox in this environment.
 
-The full record is maintained with the project. Section 15 is the approval list.
+Companion note: [02-safety.md](02-safety.md) has search, deletion safety, the threat model, dependencies, the risk register, the 10-step proof, and the test plan.
 
 ## Recommendation
 
 Tauri 2 shell, Rust core, React UI. Phase 1 is a Rust CLI against a sacrificial Gmail account, not the desktop shell.
 
-First connect uses `gmail.modify` (read, send, archive, Trash). Permanent delete uses a separate later grant of `https://mail.google.com/` because that is the only scope `users.messages.delete` accepts. Google says that call cannot be undone. `gmail.modify` explicitly cannot do it.
+```text
+React UI (Tauri webview)
+        │  commands only (no tokens, no raw MIME logs)
+        ▼
+Rust core — accounts, provider traits, sync, SQLite, HTML sanitize
+        ├── OS keychain (refresh tokens)
+        ├── SQLite (refs, collections, optional FTS)
+        └── Gmail REST now; Graph, Yahoo, AOL, Proton Bridge later
+```
 
-Microsoft `permanentDelete` is not the same operation: it moves mail into the Purges folder, and a hold or retention can keep it. Yahoo and AOL need OAuth mail-scope approval and separate client credentials. Proton requires a paid Proton Mail Bridge on localhost. None of those are the first connector.
+Electron is the fallback only if loopback OAuth fails on an OS. A hosted mail gateway is rejected. This web preview is brand and docs only.
 
-Live cleanup uses Gmail search. A selective SQLite FTS index is optional, metadata first, body text off by default. No attachment indexing. No full mailbox copy. Tokens live in the OS keychain, never in SQLite.
+## Verified Gmail facts (2026-09-10 scopes, 2026-04-15 delete/trash, 2026-09-10 quota, 2026-09-15 sync)
 
-## Blockers
+- `gmail.modify` is restricted. It can read, send, archive, and Trash. It cannot permanently delete.
+- `users.messages.delete` requires `https://mail.google.com/` and Google says it cannot be undone. Prefer Trash.
+- `users.messages.trash` accepts `gmail.modify` or `https://mail.google.com/` and moves mail to Trash.
+- Reading mail (`gmail.readonly`, `gmail.metadata`, `gmail.modify`) is restricted. `gmail.send` is sensitive. `gmail.labels` is non-sensitive and is not enough.
+- If restricted-scope data is stored on a server or transmitted, a security assessment is required. Personal use and testing are verification exceptions. A local-only binary is not an automatic exemption from verification. Whether a shipped local app owes annual CASA is **open**.
+- Quota: 1,200,000 units per project per minute, 6,000 per user per minute. `messages.get` and `messages.trash` are 20 units. `messages.list` is 5. `messages.delete` is 10. `messages.send` is 100.
+- Header indexing is about 300 messages a minute at the cap. Cleanup should use live Gmail search, not a body backfill.
+- History is typically kept at least a week, sometimes less. HTTP 404 on `history.list` means rescan ids, not download every body.
+- **Assumption:** Testing-mode External apps expire refresh tokens in 7 days and cap users near 100. Confirm that doc before coding login.
 
-1. No Google Cloud desktop OAuth client and no sacrificial Gmail here, so live Trash and permanent delete were not demonstrated.
-2. Restricted scopes (`gmail.modify`, `gmail.readonly`, and `https://mail.google.com/`) block a clean public install until Google verifies the app. A security assessment applies if restricted data is stored or transmitted through a server. Testing-mode use is the planned first audience. The 7-day refresh-token limit is an assumption to confirm before coding login.
-3. Gmail quota as of 2026-09-10 is 6,000 units per user per minute, and `messages.get` costs 20. Header-indexing a large mailbox is an overnight job. Do not backfill bodies.
-4. History records typically last at least a week, sometimes less. A 404 on `history.list` forces an id rescan, not a body mirror.
-5. Tauri loopback OAuth on all three operating systems is an assumption until Phase 2. Electron is the fallback for an OS that fails, not a reason to add a server.
+## Other providers
 
-## Decisions still required
+- Microsoft: `DELETE` moves to Deleted Items (`Mail.ReadWrite`, docs 2025-07-23). `permanentDelete` also uses `Mail.ReadWrite` but puts mail in the Purges folder and retention or a hold can keep it (docs 2026-08-24). Do not describe that as instant Gmail-style destruction. Send needs `Mail.Send`.
+- Yahoo and AOL share Yahoo's identity system but need separate OAuth client credentials and an approved mail scope. IMAP `OAUTHBEARER`. Not the first connector.
+- Proton: paid Proton Mail Bridge only, localhost IMAP/SMTP, desktop only, custom clients are not officially supported. Not in the first release.
 
-See the numbered list in the local Phase 0 record, section 15. Do not start Phase 1 until Jeff approves them.
+## Local data
+
+SQLite holds accounts, message refs `(account_id, provider_message_id)`, collections, saved searches, optional FTS, and operation results. No tokens, no MIME in logs. Collection removal does not call the provider. Clearing an index does not delete provider mail. Body text and snippets default off. Attachment contents are never indexed in v1.
+
+## Decisions needed before any coding
+
+1. **Stack.** Approve Tauri 2 + Rust core + React UI, with Electron only if Phase 2 proves Tauri cannot complete OAuth on an OS.
+2. **Permanent delete grant.** Approve the two-step model: `gmail.modify` at connect, `https://mail.google.com/` only when the user enables permanent delete.
+3. **Phase 1 shape.** Approve a Rust CLI proof, not the desktop shell.
+4. **Test account.** You create a Google Cloud project, a Desktop OAuth client, and a sacrificial Gmail, and you add that Gmail as a test user.
+5. **Sync.** Approve polling `history.list`. No Gmail Pub/Sub and no public webhook in v1.
+6. **Index default.** Approve metadata-only optional index, body text off, attachment contents never in v1.
+7. **Audience.** Approve personal and Testing-mode use until you separately ask for public Google verification.
+8. **Linux credentials.** Approve failing closed when Secret Service is missing, rather than inventing a password vault in v1.
+9. **Brand.** Confirm this product is Letter Llama and this repo is the handoff.
+
+## What this phase did not do
+
+- No provider login, Trash, delete, or send.
+- No Tauri project and no new runtime dependencies.
+- No claim that the proof steps pass.
