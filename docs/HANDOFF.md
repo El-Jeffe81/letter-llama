@@ -3,22 +3,24 @@
 Owner: Jeff · GitHub `El-Jeffe81`
 Repo: https://github.com/El-Jeffe81/letter-llama (private)
 
+## Status
+
+Phase 0 is written. Coding has not started. Do not start Phase 1 until Jeff approves the decisions in [phase-0/README.md](phase-0/README.md) section 15.
+
 ## What is decided
 
 - Brand name: **Letter Llama**
 - Icon: a blue llama carrying letter satchels (cream bags, brass buckles, navy ground)
-- Product: an email app, meant for **desktop and mobile**
-- This pass only locked the name, the mark, and the repo
-- The owner will send the product instructions next. They were not invented here.
+- Product: a local-first desktop email organizer for Windows, macOS, and Linux
+- Providers stay the source of truth. No hosted mailbox. No full local copy
+- Gmail is the first connector. Microsoft, Yahoo, AOL, and Proton Bridge come later, one at a time
+- Trash and permanent delete are different provider operations. Never substitute one for the other
+- Custom collections are local metadata. They do not create provider labels
+- Phase 0 recommendation, **not yet approved:** Tauri 2 + Rust core + React UI. Phase 1 is a Rust CLI proof, not the full shell
 
 ## What is not decided
 
-Do not add any of this until the brief says so:
-
-- Inbox, threads, compose, search, folders, labels, or sample messages
-- Mail providers or protocols
-- Accounts, sign-in, or a database
-- Native shells (the first surface is the responsive web app unless the brief says otherwise)
+The nine approvals in `docs/phase-0/README.md` section 15. Do not guess them.
 
 ## Visual system
 
@@ -35,6 +37,7 @@ Do not add any of this until the brief says so:
 
 ## For the next agent
 
-1. Read the owner’s latest instructions before writing features.
-2. Keep the llama and this palette unless they change the brand.
-3. Update this file when scope changes.
+1. Read `docs/phase-0/README.md` before writing features or code.
+2. Keep the llama and this palette unless the owner changes the brand.
+3. Do not add a hosted backend, a full mailbox mirror, or a new provider.
+4. Update this file when a decision is approved.
