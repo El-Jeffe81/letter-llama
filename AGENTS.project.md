@@ -12,7 +12,7 @@ The mailbox is `Letter-Llama.html` and `index.html`. They must stay copies of ea
 - Type: Fraunces (wordmark), Outfit (UI).
 - Repo (public): https://github.com/El-Jeffe81/letter-llama
 - Letters in the HTML app are practice mail stored in the browser. They are not Gmail. Do not call Gmail until Jeff asks.
-- Test mailbox, not owner: `jjgumballs@gmail.com`. Do not put the Google Cloud project or OAuth app under that address.
+- Test mailbox: `jjgumballs@gmail.com`. It holds the Cloud project for testing only and will not be the long-term owner. The long-term Google account is not chosen yet. See `docs/OWNERSHIP.md`.
 
 ## Do not
 

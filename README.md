@@ -52,7 +52,7 @@ Files named `logo-pack-llama` or `logo-carrier-llama` are rejected drafts. Do no
 
 ## Gmail test
 
-The Cloud project is already under `jjgumballs@gmail.com`. Stay signed in as that account. It is also the test mailbox. A different owner can be chosen later. Do not make a second project for this test.
+The Cloud project is under `jjgumballs@gmail.com` for this test. That account will not own Letter Llama long term. The long-term Google account is not chosen yet. Do not make a second project until it is.
 
 The client id already in the repo is a **Desktop** client. A browser sign-in needs a **Web application** client. Until that exists, Connect Gmail will be refused by Google.
 
@@ -76,7 +76,7 @@ Folders are still local. Dragging Gmail onto a folder does not file it in Gmail 
 ## Decisions already made
 
 - Brand name is Letter Llama. Owner is Jeff (`El-Jeffe81`).
-- `jjgumballs@gmail.com` owns the current Google Cloud project, because that is the account used to create it. It is also the test mailbox. A different brand owner can be chosen later. See [docs/OWNERSHIP.md](docs/OWNERSHIP.md).
+- `jjgumballs@gmail.com` is the test mailbox and the account that currently holds the Cloud project. It will not be the long-term owner. The long-term Google account is not chosen yet. See [docs/OWNERSHIP.md](docs/OWNERSHIP.md).
 - Fix the look before connecting Gmail.
 - Providers, when connected later, stay the source of truth. Trash and permanent delete stay different operations. Do not turn one into the other.
 - Do not add Set aside back unless Jeff asks.

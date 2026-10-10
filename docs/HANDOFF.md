@@ -25,4 +25,4 @@ Jeff's last call: keep fixing the interface before access.
 - Trash and permanent delete are different. The HTML app already does this: Trash moves, the arrow next to it deletes forever after a popup.
 - No hosted mailbox and no second copy of a provider mailbox.
 - Gmail is the first connector, later. The Rust proof is `phase1/`. It has never signed in.
-- The Google Cloud project is under `jjgumballs@gmail.com` because that is the account that created it. See OWNERSHIP.md.
+- `jjgumballs@gmail.com` is test only. It holds the Cloud project for now and will not be the long-term owner. The long-term account is not chosen yet. See OWNERSHIP.md.
