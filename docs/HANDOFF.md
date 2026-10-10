@@ -5,39 +5,24 @@ Repo: https://github.com/El-Jeffe81/letter-llama (private)
 
 ## Status
 
-Phase 0 is written. Coding has not started. Do not start Phase 1 until Jeff approves the decisions in [phase-0/README.md](phase-0/README.md) section 15.
+Decisions 1–9 approved 2026-10-10 ("G2g approval all"). Phase 1 CLI is in `phase1/`. Do not start Tauri or a second provider.
+
+Test mailbox: `jjgumballs@gmail.com`. Approved as the disposable fixture account. Not connected. No OAuth client yet. Do not call Gmail until `LETTER_LLAMA_CLIENT_ID` is set.
 
 ## What is decided
 
 - Brand name: **Letter Llama**
-- Icon: a blue llama carrying letter satchels (cream bags, brass buckles, navy ground)
-- Product: a local-first desktop email organizer for Windows, macOS, and Linux
-- Providers stay the source of truth. No hosted mailbox. No full local copy
-- Gmail is the first connector. Microsoft, Yahoo, AOL, and Proton Bridge come later, one at a time
-- Trash and permanent delete are different provider operations. Never substitute one for the other
-- Custom collections are local metadata. They do not create provider labels
-- Phase 0 recommendation, **not yet approved:** Tauri 2 + Rust core + React UI. Phase 1 is a Rust CLI proof, not the full shell
+- Icon: a blue llama carrying letter satchels
+- Local-first desktop mail. Provider is the source of truth. No hosted mailbox. No full local copy
+- Gmail first. Other providers later, one at a time
+- Trash and permanent delete stay different operations
+- Stack later: Tauri 2 + Rust + React. Phase 1 is a Rust CLI
+- Connect with `gmail.modify`. `https://mail.google.com/` only for permanent delete
+- Poll history. No Pub/Sub in v1
+- Optional metadata index only. No bodies. No attachment contents
+- Personal / Testing-mode until Jeff asks for public verification
+- No OS keychain means refuse to store the token
 
 ## What is not decided
 
-The nine approvals in `docs/phase-0/README.md` section 15. Do not guess them.
-
-## Visual system
-
-| Token | Value | Use |
-| --- | --- | --- |
-| Ink | `#07111F` | Background |
-| Paper | `#F4EFE4` | Text and light surfaces |
-| Cobalt | `#2F7DE1` | Primary |
-| Brass | `#C6A15A` | Small accent only |
-
-- Wordmark: Fraunces
-- UI: Outfit
-- Voice: short, calm, postal. Not joke-spam, not generic SaaS.
-
-## For the next agent
-
-1. Read `docs/phase-0/README.md` before writing features or code.
-2. Keep the llama and this palette unless the owner changes the brand.
-3. Do not add a hosted backend, a full mailbox mirror, or a new provider.
-4. Update this file when a decision is approved.
+The open blocker is a Google Cloud Desktop OAuth client id. See docs/phase-1.md.
