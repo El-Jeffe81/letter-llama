@@ -1,4 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { DeskApp } from "@/components/desk-app";
 
-export const Route = createFileRoute("/")({ component: DeskApp });
+export const Route = createFileRoute("/")({
+  component: function LetterLlama() {
+    return <iframe className="mailbox-frame" title="Letter Llama" src="/Letter-Llama.html" />;
+  },
+});
