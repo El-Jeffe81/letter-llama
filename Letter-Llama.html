@@ -9,73 +9,66 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
-    :root { --ink:#07111f; --paper:#f4efe4; --cobalt:#2f7de1; --brass:#c6a15a; --line:#24344c; --surface:#101b2e; --muted:rgba(244,239,228,.62); }
+    :root { --ink:#07111f; --paper:#f7f4ee; --cobalt:#2f7de1; --brass:#c6a15a; --line:#d7dee8; --inktext:#1c2430; --muted:#667085; }
     * { box-sizing: border-box; }
-    html, body { margin: 0; height: 100%; background: var(--ink); color: var(--paper); font-family: Outfit, system-ui, sans-serif; }
+    html, body { margin: 0; height: 100%; background: #e7edf5; color: var(--inktext); font-family: Outfit, system-ui, sans-serif; }
     button, input, select, textarea { font: inherit; color: inherit; }
     button { cursor: pointer; }
-    button:disabled { cursor: default; opacity: .45; }
-    h1 { font-family: Fraunces, Georgia, serif; font-weight: 560; font-size: 1.6rem; margin: 0; }
-    .shell { min-height: 100dvh; display: grid; grid-template-columns: 232px 1fr; }
-    .side { border-right: 1px solid var(--line); padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    button:disabled { cursor: default; opacity: .4; }
+    h1 { font-family: Fraunces, Georgia, serif; font-weight: 560; font-size: 1.6rem; margin: 0; color: var(--inktext); }
+    .shell { min-height: 100dvh; display: grid; grid-template-columns: 240px 1fr; }
+    .side { background: var(--ink); color: var(--paper); border-right: 0; padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
     .brand { display: flex; gap: 10px; align-items: center; padding: 4px 6px 12px; }
     .brand img { width: 42px; height: 42px; border-radius: 12px; object-fit: cover; box-shadow: 0 0 0 1px rgba(198,161,90,.7); }
     .brand strong { font-family: Fraunces, Georgia, serif; font-size: 1.25rem; display: block; line-height: 1; }
     .brand span { color: var(--brass); font-size: .8rem; }
     .navbtn, .folder, .compose { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 8px; min-height: 40px; border: 0; background: transparent; border-radius: 10px; padding: 0 10px; text-align: left; color: rgba(244,239,228,.78); }
-    .navbtn.on, .folder.on { background: var(--surface); color: var(--paper); }
+    .navbtn.on, .folder.on { background: #173056; color: var(--paper); }
     .folder.over, .navbtn.over { outline: 1px solid var(--brass); }
     .sec { margin: 14px 10px 4px; font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: var(--brass); }
     .sub { padding-left: 8px; }
     .addfolder { display: flex; gap: 6px; padding: 4px 8px 8px; min-width: 0; }
-    .addfolder input { flex: 1; min-width: 0; width: 0; min-height: 36px; }
-    .compose { background: var(--cobalt); color: var(--paper); justify-content: center; margin: 8px 0; }
-    input, select, textarea { background: var(--ink); border: 1px solid var(--line); border-radius: 10px; min-height: 40px; padding: 8px 10px; }
+    .addfolder input { flex: 1; min-width: 0; width: 0; min-height: 36px; background: #101b2e; color: var(--paper); border-color: #24344c; }
+    .compose { background: var(--cobalt); color: white; justify-content: center; margin: 8px 0; border-radius: 20px; min-height: 44px; }
+    input, select, textarea { background: white; border: 1px solid var(--line); border-radius: 10px; min-height: 40px; padding: 8px 10px; color: var(--inktext); }
     textarea { min-height: 120px; width: 100%; }
-    .main { min-width: 0; display: flex; flex-direction: column; }
-    .toolbar { display: flex; gap: 8px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); }
-    .toolbar input[type="search"] { flex: 1; }
+    .main { min-width: 0; display: flex; flex-direction: column; background: #f4f7fb; }
+    .toolbar { display: flex; gap: 8px; align-items: center; padding: 12px 16px; background: white; border-bottom: 1px solid var(--line); }
+    .toolbar input[type="search"] { flex: 1; border-radius: 999px; background: #f4f7fb; }
     .ghost, .btn, .danger, .brass { min-height: 36px; border-radius: 10px; padding: 0 12px; }
-    .ghost { background: transparent; border: 1px solid var(--line); }
-    .btn { background: var(--cobalt); border: 0; }
-    .danger { background: transparent; border: 1px solid rgba(47,125,225,.55); color: #9ec4f5; }
-    .brass { background: transparent; border: 1px solid rgba(198,161,90,.7); color: var(--brass); }
-    .filters { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--line); background: #0c1728; }
+    .ghost { background: white; border: 1px solid var(--line); color: var(--inktext); }
+    .btn { background: var(--cobalt); border: 0; color: white; }
+    .danger { background: white; border: 1px solid #f0c9c4; color: #9b2c2c; }
+    .brass { background: white; border: 1px solid rgba(198,161,90,.8); color: #8a6a2f; }
+    .filters { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--line); background: white; }
     .filters label { display: flex; flex-direction: column; gap: 4px; font-size: .75rem; color: var(--muted); }
-    .bulk { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 16px; background: #122038; border-bottom: 1px solid var(--line); }
-    .listhead, .mail { display: grid; grid-template-columns: 32px minmax(110px, 180px) minmax(0, 1fr) 72px 36px 118px; gap: 8px; align-items: center; padding: 8px 16px; }
-    .listhead { color: var(--muted); font-size: .8rem; border-bottom: 1px solid var(--line); }
-    .mail { width: 100%; border: 0; border-bottom: 1px solid rgba(36,52,76,.7); background: transparent; text-align: left; color: inherit; }
-    .mail.unread .who, .mail.unread .subj { font-weight: 600; }
-    .mail.on { background: #15243b; }
-    .subj { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bulk { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 16px; background: white; border-bottom: 1px solid var(--line); color: var(--inktext); }
+    .list { background: white; min-height: 0; overflow: auto; }
+    .mail { display: grid; grid-template-columns: 28px 36px minmax(0, 1fr) 72px; gap: 10px; align-items: center; width: 100%; border: 0; border-bottom: 1px solid #e6ebf2; background: white; text-align: left; color: var(--inktext); padding: 10px 16px; min-height: 56px; }
+    .mail.unread { background: #f3f7fd; }
+    .mail.unread .who, .mail.unread .subject { font-weight: 700; }
+    .mail.on { box-shadow: inset 3px 0 0 var(--cobalt); background: #e8f1fc; }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--cobalt); color: white; display: grid; place-items: center; font-size: .75rem; font-weight: 650; }
+    .subject { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .snip { color: var(--muted); font-weight: 400; }
-    .iconbtn { width: 36px; height: 36px; border-radius: 8px; border: 0; background: transparent; color: var(--muted); }
-    .iconbtn:hover { color: var(--paper); background: var(--surface); }
-    .split { display: grid; grid-template-columns: minmax(320px, 46%) 1fr; min-height: 0; flex: 1; }
+    .when { color: var(--muted); font-size: .8rem; text-align: right; }
+    .split { display: grid; grid-template-columns: minmax(340px, 48%) 1fr; min-height: 0; flex: 1; }
+    .reader { background: white; border-left: 1px solid var(--line); padding: 20px 22px; color: var(--inktext); }
     .reader.empty::before { content: "Select a message."; color: var(--muted); }
-    .reader p { line-height: 1.5; color: rgba(244,239,228,.86); }
+    .reader p, .reader h1 { color: var(--inktext); }
+    .reader p { line-height: 1.5; }
     .meta { color: var(--muted); font-size: .9rem; }
-    .warn { margin-top: 12px; border: 1px solid rgba(198,161,90,.7); color: var(--brass); border-radius: 12px; padding: 12px; }
+    .warn { margin-top: 12px; border: 1px solid rgba(198,161,90,.7); color: #8a6a2f; border-radius: 12px; padding: 12px; }
     .pad { padding: 16px; }
-    .count { color: var(--muted); font-size: .8rem; }
+    .count { color: var(--brass); font-size: .8rem; }
     @media (max-width: 900px) {
       .shell { grid-template-columns: 1fr; }
-      .side { border-right: 0; border-bottom: 1px solid var(--line); }
       .split { grid-template-columns: 1fr; }
       .reader { border-left: 0; border-top: 1px solid var(--line); }
       .filters { grid-template-columns: 1fr 1fr; }
-      .listhead { display: none; }
       .reader.empty { display: none; }
-      .mail { grid-template-columns: 28px 1fr 36px; grid-template-areas: "check who trash" "check subj subj" "check when move"; }
-      .mail input[type="checkbox"] { grid-area: check; }
-      .mail .who { grid-area: who; }
-      .mail .subj { grid-area: subj; }
-      .mail .when { grid-area: when; }
-      .mail .iconbtn { grid-area: trash; }
-      .mail select { grid-area: move; width: 100%; }
-      .subj { grid-column: 2; }
-      .when { grid-column: 2; color: var(--muted); font-size: .8rem; }
+      .mail { grid-template-columns: 28px 36px minmax(0, 1fr); }
+      .when { grid-column: 3; text-align: left; }
     }
   </style>
 </head>
@@ -184,13 +177,14 @@
           <label>Attachments<select id="f-files" data-filter="attachment"><option value="any">Any</option><option value="yes" ${state.filters.attachment === "yes" ? "selected" : ""}>Has attachment</option><option value="no" ${state.filters.attachment === "no" ? "selected" : ""}>No attachment</option></select></label>
           <label>Read<select id="f-unread" data-filter="unread"><option value="any">Any</option><option value="yes" ${state.filters.unread === "yes" ? "selected" : ""}>Unread</option><option value="no" ${state.filters.unread === "no" ? "selected" : ""}>Read</option></select></label>
         </div>` : "";
-      const bulk = state.selected.length ? `
-        <div class="bulk"><strong>${state.selected.length} selected</strong>
-          <button class="danger" data-act="trash-selected">Trash</button>
-          <button class="ghost" data-act="aside-selected">Set aside</button>
-          <select id="bulk-move"><option value="">Move to folder</option>${state.folders.map((folder) => `<option value="${esc(folder.id)}">${esc(folder.name)}</option>`).join("")}</select>
-          ${state.armed ? `<button class="brass" data-act="confirm-many">Yes, delete forever</button>` : `<button class="brass" data-act="arm-many">Delete forever</button>`}
-        </div>` : "";
+      const bulk = `
+        <div class="bulk">
+          <input type="checkbox" data-act="check-all" ${allOn ? "checked" : ""} aria-label="Check all" />
+          <button class="danger" data-act="trash-selected" ${state.selected.length ? "" : "disabled"}>Trash</button>
+          <button class="ghost" data-act="aside-selected" ${state.selected.length ? "" : "disabled"}>Set aside</button>
+          <select id="bulk-move" ${state.selected.length ? "" : "disabled"}><option value="">Move</option>${state.folders.map((folder) => `<option value="${esc(folder.id)}">${esc(folder.name)}</option>`).join("")}</select>
+          ${state.armed ? `<button class="brass" data-act="confirm-many">Yes, delete forever</button>` : `<button class="brass" data-act="arm-many" ${state.selected.length ? "" : "disabled"}>Delete forever</button>`}
+        </div>`;
       const compose = state.writing ? `
         <form id="compose" class="pad">
           <label class="meta" for="to">To</label><input id="to" name="to" value="${esc(state.to)}" />
@@ -198,25 +192,24 @@
           <label class="meta" for="body">Message</label><textarea id="body" name="body">${esc(state.body)}</textarea>
           <div class="bulk" style="padding-left:0"><button class="btn" type="submit">Send</button><button class="ghost" type="button" data-act="cancel-write">Discard</button></div>
         </form>` : "";
-      const list = `
-        <div class="listhead"><input type="checkbox" data-act="check-all" ${allOn ? "checked" : ""} aria-label="Check all" /><span></span><span>Message</span><span>Date</span><span></span><span></span></div>
-        ${rows.map((letter) => row(letter)).join("") || `<p class="pad meta">No messages.</p>`}`;
+      const list = `<div class="list">${rows.map((letter) => row(letter)).join("") || `<p class="pad meta">No messages.</p>`}</div>`;
       const open = state.letters.find((letter) => letter.id === state.openId);
       return `
         <div class="toolbar"><input id="q" type="search" placeholder="Search mail" value="${esc(state.query)}" /><button class="ghost" data-act="filters">${state.filtersOpen ? "Hide filters" : "Filters"}</button></div>
         ${filters}${bulk}${compose}
         <div class="split"><div>${list}</div>${open ? `<article class="reader">${reader(open)}</article>` : `<div class="reader empty"></div>`}</div>`;
     }
+    function initials(name) {
+      return String(name).trim().split(/\s+/).slice(0, 2).map((part) => part[0] || "").join("").toUpperCase();
+    }
     function row(letter) {
       const who = letter.place === "sent" ? letter.to : letter.from;
       const on = state.selected.includes(letter.id);
       return `<div class="mail ${letter.unread ? "unread" : ""} ${state.openId === letter.id ? "on" : ""}" draggable="true" data-open="${esc(letter.id)}">
         <input type="checkbox" data-check="${esc(letter.id)}" ${on ? "checked" : ""} aria-label="Select ${esc(letter.subject)}" />
-        <span class="who">${esc(who)}</span>
-        <span class="subj"><span class="subj">${esc(letter.subject)}</span> <span class="snip">${esc(letter.body)}</span>${letter.files.length ? ` <span class="snip">· ${letter.files.length} file</span>` : ""}</span>
+        <span class="avatar" aria-hidden="true">${esc(initials(who))}</span>
+        <span class="subject"><span class="who">${esc(who)}</span> <span class="subject">${esc(letter.subject)}</span> <span class="snip">${esc(letter.body)}</span></span>
         <span class="when">${esc(shownDate(letter.date))}</span>
-        <button class="iconbtn" data-trash="${esc(letter.id)}" aria-label="Trash"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16M9 7V5h6v2M8 7l1 13h6l1-13"/></svg></button>
-        <select data-move="${esc(letter.id)}" aria-label="Move"><option value="">Move</option><option value="inbox">Inbox</option><option value="archived">Set aside</option><option value="trash">Trash</option>${state.folders.map((folder) => `<option value="folder:${esc(folder.id)}">${esc(folder.name)}</option>`).join("")}</select>
       </div>`;
     }
     function reader(letter) {
