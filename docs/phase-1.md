@@ -1,5 +1,7 @@
 # Phase 1 — Rust CLI
 
+This crate is not the app. The mailbox you open is the HTML file in the repo root. See the [README](../README.md).
+
 Approved 2026-10-10. Crate: `phase1/`. 15 unit tests passed against a fake Gmail and a local SQLite file. No live call to jjgumballs@gmail.com.
 
 ## Proven by tests

@@ -1,27 +1,21 @@
 # Letter Llama
 
-Decisions in `docs/phase-0/README.md` section 15 were approved 2026-10-10. Phase 1 is the Rust CLI in `phase1/`. Do not build the Tauri shell or a web inbox in this workspace.
+The current app and the rules for editing it are in [README.md](README.md). Follow that file. This note is older.
 
-## Locked
+The mailbox is `Letter-Llama.html` and `index.html`. They must stay copies of each other. Do not treat `src/` or `phase1/` as the mailbox.
+
+## Still locked
 
 - Name: **Letter Llama**
-- Mark: cobalt-blue llama with cream letter satchels and brass buckles, on navy. Raster: `src/assets/letter-llama.jpg`.
+- Icon: [4-legged-llama.jpg](4-legged-llama.jpg). Not the standing llama. Not the draft files in `public/logo-*`.
 - Palette: ink `#07111F`, paper `#F4EFE4`, cobalt `#2F7DE1`, brass `#C6A15A`.
 - Type: Fraunces (wordmark), Outfit (UI).
-- Product: local-first desktop mail for Windows, macOS, and Linux. Provider is the source of truth.
-- Repo (private): https://github.com/El-Jeffe81/letter-llama
-- The preview is the practice desk. Letters there are samples written for the app. They are not Gmail. Do not call Gmail from the preview.
-- Test mailbox, not owner: `jjgumballs@gmail.com`. Do not put the Google Cloud project or OAuth app under that address. No live Gmail calls without `LETTER_LLAMA_CLIENT_ID`.
+- Repo (public): https://github.com/El-Jeffe81/letter-llama
+- Letters in the HTML app are practice mail stored in the browser. They are not Gmail. Do not call Gmail until Jeff asks.
+- Test mailbox, not owner: `jjgumballs@gmail.com`. Do not put the Google Cloud project or OAuth app under that address.
 
-## Web app in this workspace
+## Do not
 
-- Auth stays **off**. Database stays **off**. No migrations, no `@/lib/db`.
-- Do not present practice letters as the owner's mailbox.
-- Do not call Gmail from the preview.
-
-## Phase 1 rules
-
-- Trash calls `messages.trash`. Permanent delete calls `messages.delete` and only with `https://mail.google.com/`.
-- Never substitute one for the other.
-- SQLite stores ids and headers only. No bodies, no tokens.
-- Tokens go to the OS keychain or the command fails.
+- Add Set aside back.
+- Build a hosted mailbox or a second copy of a provider mailbox.
+- Commit `phase1/.env`.

@@ -1,5 +1,7 @@
 # Letter Llama — Phase 0
 
+This is the original research note from 2026-10-10. The app has moved on. Current behavior, the logo, and how to edit the mailbox are in the [README](../../README.md).
+
 Reviewed 2026-10-10 against current official docs. No mailbox was connected. Nothing here was executed against Gmail.
 
 Labels: **Verified** means an official page said it. **Assumption** is a recommended default, not a measured fact. **Open** still needs a decision or a live test.
