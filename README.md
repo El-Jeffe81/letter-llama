@@ -1,16 +1,9 @@
 # Letter Llama
 
-Local-first desktop email for the desk and the pocket. Existing providers stay the source of truth.
+Local mailbox app. The file you open is [Letter-Llama.html](Letter-Llama.html). Download it and open it in a browser. No installer.
 
-The mark is a blue llama with letter satchels.
+It can send, reply, file into piles, trash, and permanently delete. Permanent delete asks twice and does not fall back to trash.
 
-Phase 0 is written. Coding has not started. Read [docs/phase-0/README.md](docs/phase-0/README.md) and approve the decisions in section 15 before any build.
+Gmail is not connected. The Rust core in `phase1/` is the safety proof for a later provider connection. Do not commit `phase1/.env`.
 
-Agent handoff: [docs/HANDOFF.md](docs/HANDOFF.md).
-
-## Locked
-
-- Name: Letter Llama
-- Platforms: Windows, macOS, and Linux desktop
-- First connector: Gmail
-- Palette: ink `#07111F`, paper `#F4EFE4`, cobalt `#2F7DE1`, brass `#C6A15A`
+The desk source that feeds the chat preview is `src/components/desk-app.tsx` and `src/lib/desk-store.ts`.

@@ -1,0 +1,6 @@
+node_modules/
+phase1/target/
+phase1/.env
+*.db
+*.db-journal
+.vercel/
