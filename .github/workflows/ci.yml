@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  mailbox-copies:
+    name: index.html matches Letter-Llama.html
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare the two mailbox files
+        run: |
+          if ! cmp -s index.html Letter-Llama.html; then
+            echo "::error::index.html and Letter-Llama.html are different. Copy Letter-Llama.html over index.html and commit both."
+            exit 1
+          fi
+          echo "The two mailbox files match."
+
+  no-secrets:
+    name: No .env or Google client secret
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fail on committed .env files
+        run: |
+          found=$(git ls-files | grep -E '(^|/)\.env($|\.)' | grep -v -E '\.env\.example$' || true)
+          if [ -n "$found" ]; then
+            echo "::error::These .env files are committed and must be removed: $found"
+            exit 1
+          fi
+          echo "No .env files are committed."
+      - name: Fail on Google client secrets
+        run: |
+          if git grep -nI -E 'GOCSPX-[A-Za-z0-9_-]{10,}|"client_secret"[[:space:]]*:[[:space:]]*"[^"]+"'; then
+            echo "::error::A Google OAuth client secret is committed. Remove it and rotate it in Google Cloud."
+            exit 1
+          fi
+          echo "No Google client secret found."
+
+  phase1-tests:
+    name: phase1 Rust tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: phase1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: phase1
+      - name: Run tests
+        run: cargo test --locked
