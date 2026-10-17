@@ -20,7 +20,10 @@ impl Http for LiveHttp {
         let url = format!("https://gmail.googleapis.com{}", req.path);
         let builder = self
             .client
-            .request(reqwest::Method::from_bytes(req.method.as_bytes()).map_err(|e| e.to_string())?, &url)
+            .request(
+                reqwest::Method::from_bytes(req.method.as_bytes()).map_err(|e| e.to_string())?,
+                &url,
+            )
             .bearer_auth(&self.token);
         let builder = if let Some(body) = req.body {
             builder
@@ -117,7 +120,13 @@ fn auth_url(permanent: bool) -> i32 {
     let Ok(id) = client_id() else {
         return 1;
     };
-    let url = authorize_url(&id, "http://127.0.0.1:8765/", &challenge(&verifier()), "state", permanent);
+    let url = authorize_url(
+        &id,
+        "http://127.0.0.1:8765/",
+        &challenge(&verifier()),
+        "state",
+        permanent,
+    );
     println!("{url}");
     0
 }
@@ -142,7 +151,13 @@ fn auth(permanent: bool) -> i32 {
     };
     let redirect = format!("http://127.0.0.1:{port}/");
     let code_verifier = verifier();
-    let url = authorize_url(&id, &redirect, &challenge(&code_verifier), "letterllama", permanent);
+    let url = authorize_url(
+        &id,
+        &redirect,
+        &challenge(&code_verifier),
+        "letterllama",
+        permanent,
+    );
     println!("{url}");
     let mut stream = match listener.accept() {
         Ok((stream, _)) => stream,
@@ -157,7 +172,8 @@ fn auth(permanent: bool) -> i32 {
     let query = req.split_whitespace().nth(1).unwrap_or("");
     let query = query.split_once('?').map(|(_, q)| q).unwrap_or("");
     let Some(code) = code_from_query(query) else {
-        let _ = stream.write_all(b"HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\nNo code.\n");
+        let _ =
+            stream.write_all(b"HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\nNo code.\n");
         eprintln!("OAuth redirect had no code.");
         return 1;
     };
@@ -219,7 +235,9 @@ fn pct(s: &str) -> String {
     let mut out = String::new();
     for b in s.bytes() {
         match b {
-            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => out.push(b as char),
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                out.push(b as char)
+            }
             _ => out.push_str(&format!("%{b:02X}")),
         }
     }
@@ -273,7 +291,11 @@ fn act(op: MailOp, ids: &[String]) -> i32 {
     match execute_batch(&http, &scopes, op, ids) {
         Ok(report) => {
             print_report(&report);
-            if report.failed.is_empty() { 0 } else { 1 }
+            if report.failed.is_empty() {
+                0
+            } else {
+                1
+            }
         }
         Err(GateError::PermanentDeleteNotGranted) => {
             eprintln!("permanent delete is off. Run auth --permanent to grant https://mail.google.com/ . Trash was not used instead.");

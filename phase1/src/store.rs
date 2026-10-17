@@ -96,10 +96,7 @@ impl Store {
 
     pub fn clear(&self, account: &str) -> Result<(), String> {
         self.conn
-            .execute(
-                "DELETE FROM message_ref WHERE account_id = ?1",
-                (account,),
-            )
+            .execute("DELETE FROM message_ref WHERE account_id = ?1", (account,))
             .map(|_| ())
             .map_err(|e| e.to_string())
     }
@@ -125,14 +122,20 @@ mod tests {
         store
             .upsert_ref("jjgumballs@gmail.com", "abc123", "Fixture subject", 1)
             .unwrap();
-        let saved = store.get("jjgumballs@gmail.com", "abc123").unwrap().unwrap();
+        let saved = store
+            .get("jjgumballs@gmail.com", "abc123")
+            .unwrap()
+            .unwrap();
         assert_eq!(saved.subject, "Fixture subject");
         assert!(!saved.missing);
         let raw = std::fs::read(&path).unwrap();
         let raw = String::from_utf8_lossy(&raw);
         assert!(!raw.contains(body));
         store.clear("jjgumballs@gmail.com").unwrap();
-        assert!(store.get("jjgumballs@gmail.com", "abc123").unwrap().is_none());
+        assert!(store
+            .get("jjgumballs@gmail.com", "abc123")
+            .unwrap()
+            .is_none());
         let _ = std::fs::remove_file(path);
     }
 

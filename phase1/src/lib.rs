@@ -204,10 +204,11 @@ pub fn html_to_text(html: &str) -> String {
         out.push(ch);
         i += ch.len_utf8();
     }
-    out.replace("&", "&")
-        .replace("<", "<")
-        .replace(">", ">")
-        .replace("&nbsp;", " ")
+    // Decode the common entities; `&amp;` goes last so `&amp;lt;` stays `&lt;`.
+    out.replace("&nbsp;", " ")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&amp;", "&")
         .split_whitespace()
         .collect::<Vec<_>>()
         .join(" ")
@@ -259,8 +260,12 @@ mod tests {
         assert_eq!(report.done, vec!["keepok".to_string()]);
         assert_eq!(report.skipped, vec!["missing99".to_string()]);
         let calls = http.calls();
-        assert!(calls.iter().any(|c| c.method == "DELETE" && c.path.ends_with("/keepok")));
-        assert!(!calls.iter().any(|c| c.method == "DELETE" && c.path.contains("missing99")));
+        assert!(calls
+            .iter()
+            .any(|c| c.method == "DELETE" && c.path.ends_with("/keepok")));
+        assert!(!calls
+            .iter()
+            .any(|c| c.method == "DELETE" && c.path.contains("missing99")));
     }
 
     #[test]
@@ -274,5 +279,11 @@ mod tests {
         let text = html_to_text("<style>x</style><script>alert(1)</script><p>Hello & co</p>");
         assert_eq!(text, "Hello & co");
         assert!(!text.contains("alert"));
+    }
+
+    #[test]
+    fn html_decodes_entities() {
+        let text = html_to_text("<p>a &lt;b&gt; &amp;&nbsp;c &amp;lt;</p>");
+        assert_eq!(text, "a <b> & c &lt;");
     }
 }
