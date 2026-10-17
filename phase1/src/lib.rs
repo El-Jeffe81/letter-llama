@@ -259,8 +259,12 @@ mod tests {
         assert_eq!(report.done, vec!["keepok".to_string()]);
         assert_eq!(report.skipped, vec!["missing99".to_string()]);
         let calls = http.calls();
-        assert!(calls.iter().any(|c| c.method == "DELETE" && c.path.ends_with("/keepok")));
-        assert!(!calls.iter().any(|c| c.method == "DELETE" && c.path.contains("missing99")));
+        assert!(calls
+            .iter()
+            .any(|c| c.method == "DELETE" && c.path.ends_with("/keepok")));
+        assert!(!calls
+            .iter()
+            .any(|c| c.method == "DELETE" && c.path.contains("missing99")));
     }
 
     #[test]
