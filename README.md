@@ -88,3 +88,11 @@ Folders are still local. Dragging Gmail onto a folder does not file it in Gmail 
 3. Commit both.
 
 Practice mail and the logo data URL live in that file. The visible logo file is `4-legged-llama.jpg`.
+
+## Accounts and services
+
+- **Google Cloud project** – holds the Gmail API and the Google OAuth clients; currently under the test account `jjgumballs@gmail.com` (long-term owner not chosen). The client in the repo is a Desktop type; a **Web application** type client is needed for browser sign-in. See "Gmail test" above and [docs/OWNERSHIP.md](docs/OWNERSHIP.md).
+- **Gmail API** – the mailbox the app connects to (test mailbox: `jjgumballs@gmail.com`).
+- **Google Identity Services** – the browser sign-in script loaded from Google; no separate account.
+- **Google Fonts** – Fraunces and Outfit fonts; no account needed.
+- **GitHub Actions** – CI workflow (`.github/workflows/ci.yml`).
